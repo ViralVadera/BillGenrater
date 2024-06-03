@@ -138,7 +138,7 @@
     <div id="customDate">Date: <span id="date"></span></div>
     <div class="form-group">
         <label for="customerName">Customer Name:</label>
-        <input type="text" id="customerName" placeholder="Enter name">
+        <input type="text" id="customerName" placeholder="Enter name" style="display: flex; margin-right: 17cm; margin-top: -2px;">
     </div>
     <div class="form-group">
         <button id="add-row-btn" class="btn">Add Row</button>
@@ -174,7 +174,287 @@
         var formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
         document.getElementById('date').textContent = formattedDate;
         document.getElementById('customDate').style.display = 'block';
-        window.print();
+        window.focus(); window.print();
+    }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const addRowBtn = document.getElementById('add-row-btn');
+    const deleteRowBtn = document.getElementById('delete-row-btn');
+    const dataTable = document.getElementById('data-table').getElementsByTagName('tbody')[0];
+    const grandTotalEl = document.getElementById('grandTotal');
+
+    const predefinedItems = [
+        { id: 'Milk', text: 'Milk', price: 2.50 },
+        { id: 'Bread', text: 'Bread', price: 1.20 },
+        { id: 'Butter', text: 'Butter', price: 3.00 },
+        { id: 'Cheese', text: 'Cheese', price: 4.50 },
+        // Add more items as needed
+    ];
+
+    addRowBtn.addEventListener('click', function() {
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td><input type="number" name="quantity[]" class="in1" value="1" min="1" oninput="calculateTotal(this)"></td>
+            <td>
+                <select class="in2 item-select">
+                    <option value="">Select an item</option>
+                </select>
+                <input type="text" class="in2 custom-item" style="display:none;" placeholder="Enter custom item">
+                <span class="print-item-name"></span>
+            </td>
+            <td><input type="number" name="price[]" class="in3" value="0" min="0" oninput="calculateTotal(this)"></td>
+            <td><input type="number" name="total[]" class="in4" value="0" readonly></td>
+        `;
+        dataTable.appendChild(newRow);
+        initializeSelect2(newRow.querySelector('.item-select'), newRow.querySelector('.custom-item'), newRow.querySelector('.print-item-name'));
+    });
+
+    deleteRowBtn.addEventListener('click', function() {
+        const rows = dataTable.getElementsByTagName('tr');
+        if (rows.length > 0) {
+            rows[rows.length - 1].remove();
+            updateGrandTotal();
+        }
+    });
+
+    window.calculateTotal = function(element) {
+        const row = element.parentElement.parentElement;
+        const quantity = row.querySelector('input[name="quantity[]"]').value;
+        const price = row.querySelector('input[name="price[]"]').value;
+        const total = row.querySelector('input[name="total[]"]');
+        total.value = (quantity * price).toFixed(2);
+        updateGrandTotal();
+    }
+
+    function updateGrandTotal() {
+        let grandTotal = 0;
+        const totals = dataTable.querySelectorAll('input[name="total[]"]');
+        totals.forEach(total => {
+            grandTotal += parseFloat(total.value);
+        });
+        grandTotalEl.textContent = grandTotal.toFixed(2);
+    }
+
+    function initializeSelect2(selectElement, customInputElement, printItemNameElement) {
+        $(selectElement).select2({
+            data: predefinedItems,
+            placeholder: 'Select or type an item',
+            allowClear: true,
+            tags: true, // Allow custom input
+            createTag: function (params) {
+                return {
+                    id: params.term,
+                    text: params.term,
+                    price: 0 // Default price for custom items
+                }
+            }
+        }).on('select2:select', function (e) {
+            const selectedItem = predefinedItems.find(item => item.id === e.params.data.id) || { price: 0 };
+            const row = e.target.parentElement.parentElement;
+            const priceInput = row.querySelector('input[name="price[]"]');
+            priceInput.value = selectedItem.price.toFixed(2);
+            calculateTotal(priceInput);
+            if (e.params.data.price === 0) {
+                customInputElement.style.display = 'block';
+                customInputElement.value = e.params.data.text;
+            } else {
+                customInputElement.style.display = 'none';
+                customInputElement.value = '';
+            }
+            printItemNameElement.textContent = e.params.data.text;
+        }).on('select2:unselect', function () {
+            customInputElement.style.display = 'none';
+            customInputElement.value = '';
+            const row = e.target.parentElement.parentElement;
+            const priceInput = row.querySelector('input[name="price[]"]');
+            priceInput.value = 0;
+            calculateTotal(priceInput);
+            printItemNameElement.textContent = '';
+        });
+    }
+});
+
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PM</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Adjustments for smaller screens */
+@media only screen and (max-width: 950px) {
+    .container {
+        max-width: 80%; /* Adjust container width */
+    }
+    .table{
+        max-width: 50%;
+    }
+}
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        background-color: white;
+        width: 900px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h3 {
+        text-align: center;
+        margin-top: 0;
+    }
+    .form-group {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    .form-group input {
+        border: none;
+        border-bottom: 1px solid black;
+        outline: none;
+        padding: 5px;
+    }
+     .form-group label {
+        white-space: nowrap; /* Prevent line breaks */
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    table, th, td {
+        border: 1px solid gray;
+    }
+    th, td {
+        text-align: center;
+        padding: 10px;
+    }
+    input[type="text"], input[type="number"] {
+        width: 100%;
+        border: none;
+        outline: none;
+        padding: 5px;
+        text-align: center;
+    }
+    .btn {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+    }
+    .btn:hover {
+        background-color: #0056b3;
+    }
+    .total {
+        text-align: right;
+        font-size: 18px;
+        margin-right: 20px;
+    }
+    @media print {
+        #printButton, #add-row-btn, #delete-row-btn, #submit {
+            display: none;
+        }
+        #customDate {
+            display: block !important;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid black !important;
+            border-collapse: collapse !important;
+        }
+        th, td {
+            padding: 10px !important;
+        }
+        .select2-container, .custom-item {
+            display: none !important;
+        }
+        .print-item-name {
+            display: block !important;
+        }
+    }
+    #customDate {
+        display: none;
+        margin-bottom: 20px;
+    }
+    /* Hide the arrows in number input fields */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+    /* Adjust Select2 dropdown width */
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-dropdown {
+        width: auto !important;
+    }
+    .print-item-name {
+        display: none;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h3>Panvadi Milkbar</h3>
+    <div id="customDate">Date: <span id="date"></span></div>
+    <div class="form-group">
+        <label for="customerName">Customer Name:</label>
+        <input type="text" id="customerName" placeholder="Enter name" style="display: flex; margin-right: 17cm; margin-top: -2px;">
+    </div>
+    <div class="form-group">
+        <button id="add-row-btn" class="btn">Add Row</button>
+        <button id="delete-row-btn" class="btn">Delete Row</button>
+    </div>
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>Qnt.</th>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div class="total">
+        Grand Total: <span id="grandTotal">0.00</span>
+    </div>
+    <div class="form-group">
+        <button id="printButton" class="btn" onclick="printForm()">Print</button>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        window.open = cordova.InAppBrowser.open;
+    }
+    function printForm() {
+        var currentDate = new Date();
+        var formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
+        document.getElementById('date').textContent = formattedDate;
+        document.getElementById('customDate').style.display = 'block';
+        window.focus(); window.print();
     }
 </script>
 
