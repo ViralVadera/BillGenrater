@@ -165,19 +165,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 <script>
-    var isAndroid = ua.indexOf("android") > -1;
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        window.open = cordova.InAppBrowser.open;
+    }
     function printForm() {
         var currentDate = new Date();
         var formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
         document.getElementById('date').textContent = formattedDate;
         document.getElementById('customDate').style.display = 'block';
-        if (isAndroid) {
-      // https://developers.google.com/cloud-print/docs/gadget
-      var gadget = new cloudprint.Gadget();
-      gadget.setPrintDocument("url", $('title').html(), window.location.href, "utf-8");
-      gadget.openPrintDialog();
-    } else {
-      window.print();}
+        window.print();
     }
 </script>
 
